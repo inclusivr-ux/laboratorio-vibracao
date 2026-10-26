@@ -1,0 +1,16 @@
+{
+  "name": "laboratorio-vibracao",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Laboratorio VibrAcao: testes de som, surdez e musica para o SinalizaAcao VR (WebXR).",
+  "type": "module",
+  "scripts": {
+    "servir": "node ferramentas/servidor.mjs",
+    "testar": "node --test \"testes/*.test.mjs\""
+  },
+  "devDependencies": {
+    "@iwer/devui": "^2.7.0",
+    "iwer": "^2.7.0",
+    "three": "^0.170.0"
+  }
+}

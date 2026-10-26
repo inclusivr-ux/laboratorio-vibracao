@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Laboratório VibrAção</title>
+    <meta name="description" content="Laboratório de som do SinalizaAção VR (InclusiVR): áudio 3D, simulação de audição, graves, ritmo e pistas visuais, para testar no Meta Quest." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#100448" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="imagens/icone-192.png" />
+    <link rel="apple-touch-icon" href="imagens/icone-192.png" />
+    <link rel="stylesheet" href="estilo/estilo.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.js",
+          "three/addons/": "./vendor/three/addons/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="topo">
+      <div class="topo-conteudo">
+        <img src="imagens/logo-inclusivr-branco-ciano.png" alt="InclusiVR" class="logo" width="70" height="98" />
+        <div>
+          <p class="sobretitulo">SinalizaAção VR · laboratório de som</p>
+          <h1>Laboratório VibrAção</h1>
+          <p class="apoio">O som que se ouve, se vê e se sente. <span class="nota">Nome provisório.</span></p>
+        </div>
+      </div>
+    </header>
+
+    <main class="grade">
+      <section class="cartao destaque" aria-labelledby="t-entrar">
+        <h2 id="t-entrar">Entrar</h2>
+        <p id="aviso-xr" class="texto-suave">Verificando se este navegador abre VR…</p>
+        <div class="botoes">
+          <button id="btn-vr" class="botao primario" disabled>Entrar no VR</button>
+          <button id="btn-pc" class="botao secundario">Abrir no modo PC</button>
+        </div>
+        <p class="status" id="status" role="status" aria-live="polite">Áudio parado. Ele liga no primeiro toque.</p>
+      </section>
+
+      <section class="cartao" aria-labelledby="t-sons">
+        <h2 id="t-sons">Seus sons</h2>
+        <p class="texto-suave">Carregue WAV, MP3 ou OGG. Os arquivos ficam guardados só neste aparelho. Marque "faixa" nas partes de uma música (até 6) para mixar no módulo Música e luz.</p>
+        <label class="botao secundario arquivo">
+          Escolher arquivos de som
+          <input id="arquivos-som" type="file" accept="audio/*,.wav,.mp3,.ogg,.m4a,.flac" multiple />
+        </label>
+        <ul id="lista-sons" class="lista-sons" aria-live="polite"></ul>
+      </section>
+
+      <section class="cartao" aria-labelledby="t-glb">
+        <h2 id="t-glb">Sala de verdade (opcional)</h2>
+        <p class="texto-suave">Para testar na Sala da Maga do Estúdio 3D, carregue o <code>cenario.glb</code> aqui. Ele abre só neste aparelho e não é enviado para lugar nenhum.</p>
+        <label class="botao secundario arquivo">
+          Escolher cenário .glb
+          <input id="arquivo-glb" type="file" accept=".glb,model/gltf-binary" />
+        </label>
+        <p id="status-glb" class="texto-suave"></p>
+      </section>
+
+      <section class="cartao largo" aria-labelledby="t-resultados">
+        <h2 id="t-resultados">Resultados dos testes</h2>
+        <div class="tabela-rolagem">
+          <table id="tabela-resultados">
+            <thead>
+              <tr><th>Quando</th><th>Módulo</th><th>Resumo</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="botoes">
+          <button id="btn-json" class="botao secundario">Baixar JSON</button>
+          <button id="btn-csv" class="botao secundario">Baixar planilha (CSV)</button>
+          <button id="btn-apagar" class="botao perigo">Apagar resultados</button>
+        </div>
+      </section>
+
+      <section class="cartao" aria-labelledby="t-quest">
+        <h2 id="t-quest">Como usar no Quest</h2>
+        <ol class="passos">
+          <li>Abra este endereço no <strong>navegador do Meta Quest</strong>.</li>
+          <li>Toque em <strong>Entrar no VR</strong> e permita o acesso.</li>
+          <li>Use as mãos (toque com o dedo ou faça a pinça) ou os controles (gatilho).</li>
+          <li>O botão no <strong>pulso esquerdo</strong> traz o painel. Nos controles, B ou Y.</li>
+          <li>Teste com os alto-falantes do headset e também com um fone na saída P2.</li>
+        </ol>
+      </section>
+
+      <section class="cartao" aria-labelledby="t-importante">
+        <h2 id="t-importante">Importante</h2>
+        <ul class="passos">
+          <li>O simulador de audição é uma <strong>aproximação didática</strong> para conferir a mixagem. Ele não mostra como uma pessoa surda "ouve".</li>
+          <li>Os testes de graves, localização e ritmo <strong>não são exames</strong>. Para isso, procure uma fonoaudióloga.</li>
+          <li>Comece sempre com volume baixo.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="rodape">
+      <p>InclusiVR · Conectando mundos por meio das línguas de sinais e tecnologia.</p>
+      <p class="texto-suave">Laboratório de testes interno do SinalizaAção VR. Versão <span id="versao"></span>.</p>
+    </footer>
+
+    <div id="palco" class="palco" hidden>
+      <canvas id="tela" aria-label="Cena 3D do laboratório"></canvas>
+      <div class="palco-barra">
+        <button id="btn-voltar" class="botao secundario pequeno">Voltar à página</button>
+        <span>Arraste para olhar · W A S D anda · Q E gira · clique nos botões do painel</span>
+      </div>
+    </div>
+
+    <script type="module" src="js/principal.js"></script>
+  </body>
+</html>

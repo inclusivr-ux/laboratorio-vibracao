@@ -1,0 +1,381 @@
+/* Laboratório VibrAção: página de entrada na camada Marca InclusiVR (tema noite). */
+@font-face {
+  font-family: 'Archivo Expanded';
+  src: url('../fontes/ArchivoExpanded-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Lexend';
+  src: url('../fontes/Lexend-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fraunces Soft';
+  src: url('../fontes/FrauncesSoft-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Outfit';
+  src: url('../fontes/Outfit-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --noite: #100448;
+  --indigo: #280eaa;
+  --roxo: #ac2fed;
+  --roxo-profundo: #5515a0;
+  --ciano: #15b0ff;
+  --aqua: #31f5ff;
+  --lima: #cfd736;
+  --lilas: #cb94ff;
+  --pontilhado: #382c70;
+  --branco: #ffffff;
+  --erro: #d22027;
+  --acerto: #42b23c;
+  --runa: #74d0d8;
+  --pergaminho: #ebf5b8;
+  --brilho-aqua: 0 0 16px 2px #31f5ff80;
+  --foco: 0 0 0 2px #100448, 0 0 0 4px #31f5ff;
+  --texto: var(--branco);
+  --texto-suave: var(--lilas);
+  --fundo: var(--noite);
+  --superficie: #1a0b6b;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: Axiforma, Lexend, 'Segoe UI', sans-serif;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+body {
+  background-color: var(--fundo);
+  background-image: radial-gradient(circle at 1px 1px, var(--pontilhado) 1.2px, transparent 1.6px);
+  background-size: 22px 22px;
+  min-height: 100vh;
+}
+
+h1,
+h2 {
+  font-family: Presicav, 'Archivo Expanded', Archivo, sans-serif;
+  font-weight: 800;
+  margin: 0 0 12px;
+  line-height: 1.1;
+}
+
+h1 {
+  font-size: clamp(30px, 5vw, 48px);
+}
+
+h2 {
+  font-size: 22px;
+  letter-spacing: 0.01em;
+}
+
+code {
+  font-family: Consolas, monospace;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.topo {
+  padding: 28px 16px 8px;
+}
+
+.topo-conteudo {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  gap: 22px;
+  align-items: center;
+}
+
+.logo {
+  width: 70px;
+  height: auto;
+  flex: none;
+}
+
+.sobretitulo {
+  margin: 0 0 4px;
+  font-family: Alfarn, Outfit, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--aqua);
+  font-size: 14px;
+}
+
+.apoio {
+  margin: 0;
+  color: var(--lima);
+  font-weight: 700;
+}
+
+.nota {
+  color: var(--lilas);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.grade {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.cartao {
+  background: var(--superficie);
+  border: 1px solid #3a2a9a;
+  border-radius: 24px;
+  padding: 24px 22px;
+  min-width: 0;
+}
+
+.cartao.destaque {
+  background: var(--indigo);
+  box-shadow: var(--brilho-aqua);
+  border-color: transparent;
+}
+
+.cartao.largo {
+  grid-column: 1 / -1;
+}
+
+.texto-suave {
+  color: var(--texto-suave);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0 8px;
+}
+
+.botao {
+  appearance: none;
+  border: 0;
+  border-radius: 9999px;
+  min-height: 52px;
+  padding: 12px 26px;
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: transform 0.08s ease, box-shadow 0.15s ease;
+}
+
+.botao:focus-visible {
+  outline: none;
+  box-shadow: var(--foco);
+}
+
+.botao:active {
+  transform: translateY(1px);
+}
+
+.botao.primario {
+  background: var(--roxo);
+  color: var(--branco);
+  box-shadow: var(--brilho-aqua);
+}
+
+.botao.secundario {
+  background: var(--ciano);
+  color: var(--noite);
+}
+
+.botao.perigo {
+  background: transparent;
+  color: #ff9ea2;
+  border: 2px solid #ff9ea2;
+}
+
+.botao.pequeno {
+  min-height: 40px;
+  font-size: 16px;
+  padding: 8px 18px;
+}
+
+.botao:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.arquivo {
+  position: relative;
+  overflow: hidden;
+  margin: 8px 0 12px;
+}
+
+.arquivo input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.status {
+  margin: 10px 0 0;
+  font-weight: 700;
+  color: var(--lima);
+}
+
+.lista-sons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.lista-sons li {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 8px 10px;
+}
+
+.lista-sons .nome {
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.lista-sons .detalhe {
+  display: block;
+  font-weight: 400;
+  color: var(--lilas);
+  font-size: 14px;
+}
+
+.lista-sons label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.lista-sons button {
+  min-height: 40px;
+  padding: 6px 14px;
+  font-size: 15px;
+}
+
+.passos {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 8px;
+}
+
+.tabela-rolagem {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+th {
+  text-align: left;
+  background: var(--indigo);
+  color: var(--branco);
+  padding: 8px 10px;
+}
+
+td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #3a2a9a;
+  vertical-align: top;
+}
+
+.rodape {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 8px 16px 40px;
+  font-size: 15px;
+}
+
+.palco {
+  position: fixed;
+  inset: 0;
+  background: #162a2c;
+  z-index: 10;
+}
+
+.palco canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+.palco-barra {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  color: var(--pergaminho);
+  font-weight: 700;
+  font-size: 15px;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.palco-barra .botao {
+  pointer-events: auto;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .topo-conteudo {
+    gap: 14px;
+  }
+  .logo {
+    width: 52px;
+  }
+  .botoes .botao {
+    width: 100%;
+  }
+  .lista-sons li {
+    grid-template-columns: 1fr auto;
+  }
+}

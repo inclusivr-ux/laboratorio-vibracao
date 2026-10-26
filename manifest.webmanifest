@@ -1,0 +1,16 @@
+{
+  "name": "Laboratório VibrAção (SinalizaAção VR)",
+  "short_name": "VibrAção",
+  "description": "Laboratório de som do SinalizaAção VR: áudio 3D, simulação de audição, graves, ritmo e pistas visuais.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#100448",
+  "theme_color": "#100448",
+  "icons": [
+    { "src": "imagens/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "imagens/icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "imagens/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
