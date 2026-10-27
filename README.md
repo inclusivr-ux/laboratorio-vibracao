@@ -1,6 +1,6 @@
 # Laboratório VibrAção
 
-Laboratório de som do **SinalizaAção VR** (InclusiVR), para o sound designer testar músicas, efeitos, áudio 3D e acessibilidade direto no Meta Quest. Funciona no navegador do Quest (WebXR), sem instalar APK. "VibrAção" é nome provisório.
+Laboratório de som do **SinalizaAção VR** (InclusiVR), para o sound designer testar músicas, efeitos, áudio 3D e acessibilidade direto no Meta Quest. Funciona no navegador do Quest (WebXR), sem instalar APK.
 
 **Endereço:** https://inclusivr-ux.github.io/laboratorio-vibracao/
 
@@ -23,7 +23,8 @@ Documento de referência: "Som, surdez e música no SinalizaAção VR" (Claude D
 
 ## Como usar no Quest
 
-1. No navegador do Meta Quest, abra **inclusivr-ux.github.io/laboratorio-vibracao** e salve nos favoritos.
+1. **Sem digitar:** no celular ou no PC, abra [este link do Web Launch](https://www.oculus.com/open_url/?url=https%3A%2F%2Finclusivr-ux.github.io%2Flaboratorio-vibracao%2F) e escolha o seu Quest, com a mesma conta Meta do headset. A página do laboratório também tem o botão **Abrir no Meta Quest**, que faz o mesmo.
+   Ou digite **inclusivr-ux.github.io/laboratorio-vibracao** no navegador do Quest e salve nos favoritos.
 2. Na página, carregue seus arquivos de som (WAV, MP3, OGG). Eles ficam só no aparelho. Marque "faixa" nas partes de uma música.
 3. Toque em **Entrar no VR**.
 4. Mãos: toque com a ponta do dedo ou faça a pinça apontando. Controles: gatilho. O botão no pulso esquerdo (ou B/Y) traz o painel. A alça de baixo move o painel.

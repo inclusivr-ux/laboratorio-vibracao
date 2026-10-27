@@ -1,5 +1,5 @@
 // Gerado por ferramentas/gerar-sw.mjs. Não edite à mão.
-const CACHE = 'vibracao-fdcaf00d95';
+const CACHE = 'vibracao-6188554d15';
 const ARQUIVOS = [
   "./",
   "./estilo/estilo.css",

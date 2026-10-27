@@ -75,9 +75,19 @@ async function iniciar() {
   }
   const btnVR = $('#btn-vr');
   btnVR.disabled = !vrOk;
+  // Web Launch (Meta): manda esta página para o navegador do Quest. Só em HTTPS e fora do headset.
+  const podeEnviar = location.protocol === 'https:' && !vrOk;
+  const btnQuest = $('#btn-quest');
+  if (btnQuest && podeEnviar) {
+    btnQuest.href = `https://www.oculus.com/open_url/?url=${encodeURIComponent(location.origin + location.pathname)}`;
+    btnQuest.target = '_blank';
+    btnQuest.hidden = false;
+  }
   $('#aviso-xr').textContent = vrOk
     ? 'Pronto para o VR. Use fone ou os alto-falantes do headset, com volume moderado.'
-    : 'Este navegador não abre VR. No PC, use o modo PC com fone de ouvido. No headset, abra este endereço no navegador do Meta Quest.';
+    : podeEnviar
+      ? 'Este navegador não abre VR. Para levar o laboratório ao headset sem digitar, toque em "Abrir no Meta Quest". No PC, dá para usar o modo PC com fone de ouvido.'
+      : 'Este navegador não abre VR. No PC, use o modo PC com fone de ouvido. No headset, abra este endereço no navegador do Meta Quest.';
 
   btnVR.addEventListener('click', async () => {
     try {
