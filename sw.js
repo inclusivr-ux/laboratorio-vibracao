@@ -63,13 +63,20 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Página: tenta a rede primeiro (para pegar atualizações). Resto: cache primeiro.
+// Rede primeiro para tudo: com internet, sempre a versão mais nova (sem "versão antiga" depois de uma
+// atualização); sem internet, o que ficou guardado na primeira visita.
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then((r) => { const copia = r.clone(); caches.open(CACHE).then((c) => c.put(req, copia)); return r; }).catch(() => caches.match(req).then((r) => r || caches.match('./index.html'))));
-    return;
-  }
-  e.respondWith(caches.match(req).then((r) => r || fetch(req)));
+  e.respondWith(
+    fetch(req)
+      .then((r) => {
+        if (r && r.ok) {
+          const copia = r.clone();
+          caches.open(CACHE).then((c) => c.put(req, copia));
+        }
+        return r;
+      })
+      .catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then((r) => r || (req.mode === 'navigate' ? caches.match('./index.html') : undefined))),
+  );
 });
