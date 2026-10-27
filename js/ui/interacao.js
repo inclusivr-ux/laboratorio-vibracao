@@ -183,6 +183,7 @@ export class Interacao {
       if (el.tipo === 'alca') {
         const { origem } = this.raioDaEntrada(entrada);
         entrada.arrastePainel = { painel, distancia: Math.max(0.25, origem.distanceTo(hit.point)) };
+        this.app.painelFixo = true;
       } else if (el.tipo === 'slider') {
         entrada.arrasteSlider = painel;
       } else {
@@ -347,6 +348,7 @@ export class Interacao {
       for (const nome of Object.keys(juntas)) {
         const ponta = nome.endsWith('-tip');
         const esfera = new THREE.Mesh(new THREE.SphereGeometry(ponta ? 0.0085 : 0.0075, 10, 8), ponta ? matPonta : matPele);
+        esfera.renderOrder = 60; // depois do painel: o dedo à frente do painel continua visível
         esfera.userData.juntaNome = nome;
         juntas[nome].add(esfera);
         entrada.esferasJuntas.push(esfera);
@@ -392,7 +394,8 @@ export class Interacao {
             p.soltar();
           } else if (est.elemento && (est.elemento.tipo === 'slider' || est.elemento.tipo === 'alca')) {
             if (est.elemento.tipo === 'alca') {
-              // Arrasta a placa junto com o dedo.
+              // Arrasta a placa junto com o dedo. Quem move o painel escolhe o lugar: ele para de acompanhar o olhar.
+              this.app.painelFixo = true;
               const mundo = ponta.clone();
               p.grupo.position.add(mundo.sub(p.malha.localToWorld(new THREE.Vector3(local.x, local.y, 0))));
             } else {

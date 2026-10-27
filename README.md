@@ -8,16 +8,23 @@ Documento de referência: "Som, surdez e música no SinalizaAção VR" (Claude D
 
 ## O que tem
 
+Ao entrar, o laboratório oferece dois modos:
+
+- **Modo guiado** (recomendado na primeira vez): um tutorial em 7 passos, um sistema por vez, com explicação curta, botões grandes e "Voltar / Próximo".
+- **Modo livre**: todas as abas abaixo. O botão GUIA, no topo, volta ao tutorial.
+
+O painel acompanha o olhar (se ficar fora da vista, volta para a frente) e é desenhado por cima da sala, então nunca fica preso na mesa. Quem arrasta o painel pela alça escolhe o lugar dele. Nada vibra nem pulsa nas mãos: na LIBRAS, as mãos são a língua.
+
 | Aba | Para quê |
 | --- | --- |
 | Início | Volume geral, som 3D (HRTF ou simples), reverberação da sala, recentrar a sala |
 | Sala da Maga | A cena do "barbeiro virtual" com espelho, em 6 passos. Dá para experimentar sem som (só pistas) ou só com som |
 | Palco 360° | Colocar qualquer som (de exemplo ou seu) em volta da cabeça, arrastar, fazer girar |
 | Localização | Teste: o som toca de uma direção aleatória e a pessoa aponta. Mede o erro e as trocas frente-trás |
-| Graves | Dá para ouvir ou sentir o grave nos alto-falantes? Tons e pulsos de 20 a 500 Hz e varreduras |
+| Graves | Dá para ouvir ou sentir o grave nos alto-falantes? Tons de 2 s (padrão) e pulsos de 20 a 500 Hz, e varreduras |
 | Ritmo | Para a Resistência: acompanhar o tempo por som, flash, bola quicando ou mão-guia; mede o atraso |
 | Simulador | Aproximação de perdas auditivas e de implante coclear, aplicada a todo o som (A/B instantâneo) |
-| Música e luz | Faixas separadas, mix original/essencial/só ritmo, velas, ondas, mãos e vibração no tempo |
+| Música e luz | Faixas separadas, mix original/essencial/só ritmo, velas, runas e ondas no chão no tempo da música |
 | Medidor | Loudness (LUFS momentâneo, curto e integrado) e pico, medidos no próprio aparelho |
 | Resultados | Testes salvos no aparelho (exporte pela página, fora do VR) |
 

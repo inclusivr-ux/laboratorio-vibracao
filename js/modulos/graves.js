@@ -5,6 +5,10 @@ import { gerarTom, gerarPulsos, gerarVarredura, frequenciaVarredura, bufferDeDad
 import { COR, FONTE } from '../ui/estilo-ui.js';
 
 const FREQS = [20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500];
+// As quatro frequências do modo guiado.
+export const FREQS_GUIA = [40, 63, 100, 250];
+// Duração de cada tom ou série de pulsos. No primeiro teste no Quest, o tom contínuo foi mais fácil de perceber.
+const DURACAO = 2;
 const RESPOSTAS = [
   ['ouco', 'Ouço', '#74d0d8'],
   ['sinto', 'Sinto vibrar', '#f4b224'],
@@ -19,11 +23,16 @@ export class ModuloGraves {
     this.idx = 0;
     this.respostas = {};
     this.nivelDb = -24;
-    this.modo = 'pulsos';
-    this.vibrarJunto = false;
+    this.modo = 'tom';
     this.fonte = null;
     this.varredura = null;
     this.marcasVarredura = {};
+    this.mostrarVarredura = false;
+  }
+
+  indiceDe(f) {
+    const i = FREQS.indexOf(f);
+    return i >= 0 ? i : 0;
   }
 
   sair() {
@@ -46,7 +55,7 @@ export class ModuloGraves {
     const f = FREQS[this.idx];
     const amp = Math.pow(10, this.nivelDb / 20);
     const taxa = app.motor.ctx.sampleRate;
-    const dados = this.modo === 'pulsos' ? gerarPulsos(taxa, f, 2.5, amp) : gerarTom(taxa, f, 2.5, amp);
+    const dados = this.modo === 'pulsos' ? gerarPulsos(taxa, f, DURACAO, amp) : gerarTom(taxa, f, DURACAO, amp);
     const buffer = bufferDeDados(app.motor.ctx, dados);
     this.fonte = app.motor.criarFonte({ buffer, espacial: false, barramento: 'efeitos', volume: 1, envioSala: 0 });
     this.fonte.aoTerminar = () => {
@@ -54,19 +63,8 @@ export class ModuloGraves {
       app.painel.marcarSujo();
     };
     this.fonte.tocar();
-    app.legendas.mostrar(`tom de ${f} Hz`, { duracao: 2.5 });
-    if (this.vibrarJunto) this.vibrarControles();
+    app.legendas.mostrar(`${this.modo === 'pulsos' ? 'pulsos' : 'tom'} de ${f} Hz`, { duracao: DURACAO });
     app.painel.marcarSujo();
-  }
-
-  vibrarControles() {
-    const app = this.app;
-    const forca = Math.min(1, Math.pow(10, this.nivelDb / 20) * 4);
-    if (this.modo === 'pulsos') {
-      for (let k = 0; k < 10; k++) setTimeout(() => app.interacao.pulsarLado('ambos', forca, 110), k * 250);
-    } else {
-      app.interacao.pulsarLado('ambos', forca, 2400);
-    }
   }
 
   responder(r) {
@@ -135,7 +133,7 @@ export class ModuloGraves {
     app.registrarResultado('Graves e vibração', `${this.nivelDb} dBFS, ${this.modo}: ${partes.join('; ') || 'sem respostas'}`, {
       nivelDb: this.nivelDb,
       modo: this.modo,
-      vibrarJunto: this.vibrarJunto,
+      duracaoS: DURACAO,
       respostas: this.respostas,
       varredura: this.marcasVarredura,
       fone: 'anotar: alto-falantes do headset ou fone',
@@ -182,14 +180,10 @@ export class ModuloGraves {
       variante: 'primario',
       tamanho: 22,
     });
-    grupoBotoes(p, 'gr-modo', a.x + 356, y + 4, 260, 50, [['pulsos', 'Pulsos'], ['tom', 'Tom']], this.modo, (v) => {
+    grupoBotoes(p, 'gr-modo', a.x + 356, y + 4, a.w - 356, 50, [['tom', 'Tom de 2 s'], ['pulsos', 'Pulsos']], this.modo, (v) => {
       this.modo = v;
       p.marcarSujo();
     }, { tamanho: 19 });
-    p.botao('gr-vibrar', a.x + 630, y + 4, a.w - 630, 50, this.vibrarJunto ? 'Controle: sim' : 'Controle: não', () => {
-      this.vibrarJunto = !this.vibrarJunto;
-      p.marcarSujo();
-    }, { variante: this.vibrarJunto ? 'ativo' : 'secundario', tamanho: 16 });
     y += 72;
     const rw = (a.w - 3 * 10) / 4;
     RESPOSTAS.forEach(([id, rot], i) => {
@@ -200,6 +194,14 @@ export class ModuloGraves {
       this.nivelDb = Math.round(v);
     }, { formatar: (v) => `${Math.round(v)} dBFS`, passo: 1 });
     y += 96;
+    if (!this.mostrarVarredura && !this.varredura) {
+      p.botao('gr-mais', a.x, y - 14, 420, 56, 'Mais: varredura de 20 s', () => {
+        this.mostrarVarredura = true;
+        p.marcarSujo();
+      }, { tamanho: 19 });
+      paragrafo(p, a.x, a.y + a.h - 8, a.w, 'Anote se o teste foi nos alto-falantes do headset ou num fone.', 19);
+      return;
+    }
     subtitulo(p, a.x, y, 'Varredura de 20 segundos: marque quando começar a ouvir', a.w);
     y += 14;
     if (this.varredura) {

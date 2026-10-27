@@ -1,5 +1,6 @@
 // Música e luz: tocar as faixas separadas, comparar mixes (original, essencial no estilo implante, só ritmo)
-// e ver a música virar luz e movimento na sala (velas, runas, ondas no chão, mãos pulsando).
+// e ver a música virar luz e movimento na sala (velas, runas, ondas no chão).
+// As mãos não pulsam nem vibram: na LIBRAS elas são a língua (regra da equipe, 27/10/2026).
 import * as THREE from 'three';
 import { titulo, grupoBotoes, subtitulo } from './comum.js';
 import { TocadorMusica } from './tocador-musica.js';
@@ -19,10 +20,7 @@ export class ModuloMusica {
     this.origem = 'exemplo';
     this.posicao = 'cabeca';
     this.mix = 'original';
-    this.reacoes = { velas: true, ondas: true, maos: true, espectro: false };
-    this.vibrar = false;
-    this.forcaVibrar = 0.6;
-    this.brilhoMaos = 0;
+    this.reacoes = { velas: true, ondas: true, espectro: false };
     this.tocador = null;
   }
 
@@ -126,11 +124,7 @@ export class ModuloMusica {
       this.espectro.malha.visible = this.reacoes.espectro && !!(this.tocador && this.tocador.tocando);
       if (this.espectro.malha.visible) this.desenharEspectro();
     }
-    if (!this.tocador || !this.tocador.tocando) {
-      this.brilhoMaos *= Math.exp(-dt * 6);
-      this.aplicarBrilhoMaos();
-      return;
-    }
+    if (!this.tocador || !this.tocador.tocando) return;
     const n = this.tocador.batidas();
     if (n > 0) {
       if (this.reacoes.velas) app.pulsoMusica = 1;
@@ -139,18 +133,6 @@ export class ModuloMusica {
         pes.y = 0;
         app.ondas.disparar(pes, 0.8);
       }
-      if (this.reacoes.maos) this.brilhoMaos = 1;
-      if (this.vibrar) app.interacao.pulsarLado('ambos', this.forcaVibrar, 70);
-    }
-    this.brilhoMaos *= Math.exp(-dt * 6);
-    this.aplicarBrilhoMaos();
-  }
-
-  aplicarBrilhoMaos() {
-    const cor = new THREE.Color(0xebf5b8).lerp(new THREE.Color(0x74d0d8), Math.min(1, this.brilhoMaos));
-    for (const e of this.app.interacao.entradas) {
-      if (e.matPele) e.matPele.color.copy(cor);
-      for (const s of e.esferasJuntas || []) s.scale.setScalar(1 + this.brilhoMaos * 0.6);
     }
   }
 
@@ -205,23 +187,14 @@ export class ModuloMusica {
     const rs = [
       ['velas', 'Velas e runas'],
       ['ondas', 'Ondas no chão'],
-      ['maos', 'Mãos pulsando'],
       ['espectro', 'Espectro (HUD)'],
     ];
-    const rw = (a.w - 130 - 3 * 8) / 4;
+    const rw = (a.w - 130 - 2 * 8) / 3;
     rs.forEach(([k, rot], i) => {
       p.botao(`mus-r-${k}`, a.x + 130 + i * (rw + 8), y, rw, 46, rot, () => {
         this.reacoes[k] = !this.reacoes[k];
         p.marcarSujo();
-      }, { variante: this.reacoes[k] ? 'ativo' : 'secundario', tamanho: 15 });
+      }, { variante: this.reacoes[k] ? 'ativo' : 'secundario', tamanho: 16 });
     });
-    y += 58;
-    p.botao('mus-vibrar', a.x, y + 12, 280, 48, this.vibrar ? 'Vibrar na batida: sim' : 'Vibrar na batida: não', () => {
-      this.vibrar = !this.vibrar;
-      p.marcarSujo();
-    }, { variante: this.vibrar ? 'ativo' : 'secundario', tamanho: 17 });
-    p.slider('mus-forca', a.x + 300, y, a.w - 300, 62, 'Força (controles)', this.forcaVibrar * 100, 10, 100, (v) => {
-      this.forcaVibrar = v / 100;
-    }, { formatar: (v) => `${Math.round(v)}%` });
   }
 }

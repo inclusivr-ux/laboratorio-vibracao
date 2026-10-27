@@ -137,6 +137,19 @@ export class ModuloSimulador {
     p.botao('sim-musica', a.x + 302, y, 200, 56, this.tocador && this.tocador.tocando ? 'Parar música' : 'Tocar música', () => this.tocarMusica(), { tamanho: 19 });
     p.botao('sim-voz', a.x + 514, y, a.w - 514, 56, 'Voz à frente', () => this.tocarVoz(), { tamanho: 19 });
     y += 70;
+    if (!this.ajustes) {
+      p.botao('sim-ajustes', a.x, y, 300, 52, 'Ajustes finos', () => {
+        this.ajustes = true;
+        p.marcarSujo();
+      }, { tamanho: 20 });
+      p.textoQuebrado('Recrutamento, largura das bandas, orelha, áudio mono e nível de referência.', a.x + 320, y + 22, a.w - 320, 26, { fonte: FONTE.texto(18), cor: COR.carvao });
+      p.texto('Aproximação didática para conferir a mixagem. Não mostra como uma pessoa surda ouve.', a.x, a.y + a.h - 2, { fonte: FONTE.texto(18), cor: COR.carvao, maxLargura: a.w });
+      return;
+    }
+    p.botao('sim-ajustes-fechar', a.x + a.w - 210, a.y + 4, 210, 44, 'Esconder ajustes', () => {
+      this.ajustes = false;
+      p.marcarSujo();
+    }, { tamanho: 17 });
     subtitulo(p, a.x, y + 30, 'Recrutamento');
     grupoBotoes(p, 'sim-rec', a.x + 190, y, 200, 46, [[true, 'Sim'], [false, 'Não']], this.op.recrutamento, (v) => {
       this.op.recrutamento = v;

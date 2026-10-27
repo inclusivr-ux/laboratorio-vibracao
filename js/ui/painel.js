@@ -20,7 +20,9 @@ export class Painel {
     this.textura.generateMipmaps = true;
     this.textura.minFilter = THREE.LinearMipmapLinearFilter;
     const geo = new THREE.PlaneGeometry(this.larguraM, this.alturaM);
-    const mat = new THREE.MeshBasicMaterial({ map: this.textura, transparent: true, toneMapped: false });
+    // O painel é desenhado por cima da sala (depthTest desligado): nunca fica "preso" dentro da mesa
+    // ou de uma parede. Ele grava profundidade, então as mãos à frente dele continuam visíveis.
+    const mat = new THREE.MeshBasicMaterial({ map: this.textura, transparent: false, alphaTest: 0.5, depthTest: false, depthWrite: true, toneMapped: false });
     this.malha = new THREE.Mesh(geo, mat);
     this.malha.renderOrder = 50;
     this.malha.userData.painel = this;

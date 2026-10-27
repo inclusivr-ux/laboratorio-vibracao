@@ -10,6 +10,7 @@ import { Painel } from './ui/painel.js';
 import { Interacao } from './ui/interacao.js';
 import { COR, FONTE } from './ui/estilo-ui.js';
 import { lerPreferencia, salvarPreferencia, adicionarResultado } from './util/armazenamento.js';
+import { Guia } from './modulos/guia.js';
 
 const LARGURA_ABAS = 230;
 const ALTURA_TOPO = 84;
@@ -23,11 +24,19 @@ export class App {
       som: true,
       pistas: true,
       legendas: true,
-      haptica: true,
       hrtf: true,
       ...lerPreferencia('estado', {}),
     };
     this.estado.som = true; // sempre começa com som
+    // Nada vibra nas mãos: na LIBRAS as mãos são a língua (regra da equipe, 27/10/2026).
+    this.estado.haptica = false;
+    // 'escolha' (tela inicial), 'guiado' (tutorial passo a passo) ou 'livre' (todas as abas).
+    this.modo = 'escolha';
+    this.guia = null;
+    this.painelFixo = false;
+    this.tempoForaDaVista = 0;
+    this.animPainel = null;
+    this.posicionarAoEntrar = false;
     this.alertaTexto = '';
     this.alertaAte = 0;
     this.fontes = [];
@@ -96,6 +105,7 @@ export class App {
 
     this.modulos = [];
     this.moduloAtivo = null;
+    this.guia = new Guia(this);
 
     // Teclado no modo PC
     this.teclas = new Set();
@@ -112,7 +122,8 @@ export class App {
     r.xr.addEventListener('sessionstart', () => {
       this.emVR = true;
       this.camera.rotation.set(0, 0, 0);
-      setTimeout(() => this.trazerPainel(), 300);
+      // A sala e o painel são posicionados quando a posição da cabeça já é conhecida (ver quadro()).
+      this.posicionarAoEntrar = true;
       this.aoMudarEstado({ vr: true });
     });
     r.xr.addEventListener('sessionend', () => {
@@ -254,30 +265,100 @@ export class App {
   }
 
   // Coloca a sala para que o ponto de início fique onde o jogador está, olhando para a frente dele.
-  recentrar() {
+  recentrar({ silencioso = false } = {}) {
     const cab = this.posicaoCabeca();
     const dir = this.direcaoOlhar();
     const yaw = Math.atan2(-dir.x, -dir.z);
     this.mundo.position.set(cab.x, 0, cab.z);
     this.mundo.rotation.set(0, yaw, 0);
     this.mundo.updateMatrixWorld(true);
-    this.alerta('Sala recentrada: o espelho está atrás de você.');
+    if (!silencioso) this.alerta('Sala recentrada: o espelho está atrás de você.');
   }
 
-  trazerPainel() {
+  // Onde o painel fica bom de ler e de tocar: à frente, um pouco abaixo dos olhos, virado para a cabeça.
+  alvoPainel() {
     const cab = this.posicaoCabeca();
     const dir = this.direcaoOlhar();
     dir.y = 0;
     if (dir.lengthSq() < 1e-4) dir.set(0, 0, -1);
     dir.normalize();
-    const alvo = cab.clone().addScaledVector(dir, this.emVR ? 0.5 : 0.85);
-    alvo.y = cab.y - (this.emVR ? 0.3 : 0.25);
-    this.painel.grupo.position.copy(alvo);
+    const pos = cab.clone().addScaledVector(dir, this.emVR ? 0.52 : 0.85);
+    pos.y = this.emVR ? Math.max(0.85, cab.y - 0.26) : cab.y - 0.25;
     const olhar = cab.clone();
     olhar.y = cab.y + 0.05;
-    this.painel.grupo.lookAt(olhar);
+    // Com os argumentos nesta ordem, o +Z do painel (a frente da placa) aponta para a cabeça.
+    const m = new THREE.Matrix4().lookAt(olhar, pos, new THREE.Vector3(0, 1, 0));
+    const quat = new THREE.Quaternion().setFromRotationMatrix(m);
+    return { pos, quat };
+  }
+
+  trazerPainel() {
+    const { pos, quat } = this.alvoPainel();
+    this.painel.grupo.position.copy(pos);
+    this.painel.grupo.quaternion.copy(quat);
     this.painel.grupo.visible = true;
     this.painel.visivel = true;
+    this.painelFixo = false; // chamado pelo botão do pulso (ou B/Y): volta a acompanhar o olhar
+    this.animPainel = null;
+    this.tempoForaDaVista = 0;
+  }
+
+  // No começo da sessão de VR: recentra a sala no jogador e traz o painel, quando a cabeça já tem posição.
+  posicionarSeNecessario() {
+    if (!this.posicionarAoEntrar || !this.emVR) return;
+    const cab = this.posicaoCabeca();
+    if (cab.y < 0.4) return;
+    this.posicionarAoEntrar = false;
+    this.recentrar({ silencioso: true });
+    this.trazerPainel();
+  }
+
+  // O painel acompanha o olhar com calma: se ficar fora da vista por um tempo, desliza de volta para a frente.
+  seguirPainel(dt) {
+    const g = this.painel.grupo;
+    if (this.animPainel) {
+      const a = this.animPainel;
+      a.t = Math.min(1, a.t + dt / a.dur);
+      const k = a.t * a.t * (3 - 2 * a.t);
+      g.position.lerpVectors(a.de, a.para, k);
+      g.quaternion.slerpQuaternions(a.qDe, a.qPara, k);
+      if (a.t >= 1) this.animPainel = null;
+      return;
+    }
+    if (!this.emVR || this.painelFixo || !g.visible) return;
+    if (this.interacao.entradas.some((e) => e.arrastePainel)) return;
+    const m = this.moduloAtivo;
+    // Durante a cena do espelho, o teste de ritmo e o de localização, o painel fica parado (não tapa a vista).
+    if (m && m.id === 'sala' && m.passo > 0) return;
+    if (m && m.id === 'ritmo' && m.fase === 'medindo') return;
+    if (m && m.id === 'localizacao' && (m.fase === 'tentativa' || m.fase === 'feedback')) return;
+    const cab = this.posicaoCabeca();
+    const dir = this.direcaoOlhar();
+    dir.y = 0;
+    if (dir.lengthSq() < 1e-4) return;
+    dir.normalize();
+    const para = g.position.clone().sub(cab);
+    para.y = 0;
+    const dist = para.length();
+    if (dist > 1e-4) para.normalize();
+    const angulo = Math.acos(Math.max(-1, Math.min(1, dir.dot(para))));
+    const fora = angulo > 1.0 || dist > 1.5 || dist < 0.2;
+    this.tempoForaDaVista = fora ? this.tempoForaDaVista + dt : 0;
+    if (this.tempoForaDaVista > 1.2) {
+      this.tempoForaDaVista = 0;
+      const { pos, quat } = this.alvoPainel();
+      this.animPainel = { t: 0, dur: 0.5, de: g.position.clone(), para: pos, qDe: g.quaternion.clone(), qPara: quat };
+    }
+  }
+
+  definirModo(modo) {
+    if (this.modo === modo) return;
+    if (this.modo === 'guiado' && this.guia) this.guia.sair();
+    this.modo = modo;
+    if (modo === 'guiado' && this.guia) this.guia.comecar();
+    if (modo === 'livre' && (!this.moduloAtivo || this.moduloAtivo.id === 'guia')) this.ativarModulo('inicio');
+    salvarPreferencia('modo', modo);
+    this.painel.marcarSujo();
   }
 
   girarCameraPC(dx, dy) {
@@ -484,7 +565,25 @@ export class App {
     return { x: LARGURA_ABAS + 18, y: ALTURA_TOPO + 12, w: 1024 - LARGURA_ABAS - 36, h: 704 - ALTURA_TOPO - ALTURA_RODAPE - 24 };
   }
 
+  // Tela inicial: escolher entre o modo guiado (tutorial) e o modo livre.
+  desenharEscolha(p) {
+    p.cartela(0, 0, p.W, p.H, { fundo: COR.pergaminho, borda: COR.carvao, raio: 30, espessura: 7 });
+    p.texto('LABORATÓRIO VIBRAÇÃO', p.W / 2, 92, { fonte: FONTE.titulo(44), cor: COR.tinta, alinhar: 'center', maxLargura: p.W - 80 });
+    p.texto('O som que se ouve, se vê e se sente.', p.W / 2, 138, { fonte: FONTE.texto(27), cor: COR.carvao, alinhar: 'center' });
+    const cw = 430;
+    const xs = [70, p.W - 70 - cw];
+    p.botao('modo-guiado', xs[0], 178, cw, 112, 'Modo guiado', () => this.definirModo('guiado'), { variante: 'primario', tamanho: 38 });
+    p.textoQuebrado('Recomendado na primeira vez. Um sistema por vez, com explicação e um botão grande para experimentar.', xs[0] + 8, 336, cw - 16, 34, { fonte: FONTE.texto(24), cor: COR.tinta });
+    p.botao('modo-livre', xs[1], 178, cw, 112, 'Modo livre', () => this.definirModo('livre'), { tamanho: 38 });
+    p.textoQuebrado('Todas as abas e opções, para testar à vontade. O botão GUIA, no topo, volta ao tutorial.', xs[1] + 8, 336, cw - 16, 34, { fonte: FONTE.texto(24), cor: COR.tinta });
+    p.retangulo(60, 482, p.W - 120, 158, 24, 'rgba(255,255,255,0.5)', 'rgba(66,67,58,0.35)', 3);
+    p.texto('Como tocar nos botões', 90, 524, { fonte: FONTE.forte(24), cor: COR.tinta });
+    p.textoQuebrado('Encoste a ponta do dedo no botão, ou aponte e faça a pinça. Com controles, use o gatilho. O botão redondo no pulso esquerdo (ou B/Y no controle) traz este painel para a sua frente.', 90, 562, p.W - 180, 32, { fonte: FONTE.texto(22), cor: COR.carvao });
+  }
+
   desenharPainel(p) {
+    if (this.modo === 'escolha') return this.desenharEscolha(p);
+    if (this.modo === 'guiado' && this.guia) return this.guia.desenhar(p);
     p.cartela(0, 0, p.W, p.H, { fundo: COR.pergaminho, borda: COR.carvao, raio: 30, espessura: 7 });
     // Topo
     p.texto('LABORATÓRIO VIBRAÇÃO', 34, 54, { fonte: FONTE.titulo(30), cor: COR.tinta, maxLargura: 520 });
@@ -493,7 +592,6 @@ export class App {
       ['som', 'SOM'],
       ['pistas', 'PISTAS'],
       ['legendas', 'LEGENDAS'],
-      ['haptica', 'VIBRAÇÃO'],
     ];
     toggles.forEach(([k, rot], i) => {
       p.botao(`topo-${k}`, x0 + i * 108, 18, 100, 50, rot, () => this.definirEstado(k, !this.estado[k]), {
@@ -501,6 +599,7 @@ export class App {
         tamanho: 19,
       });
     });
+    p.botao('topo-guia', x0 + 3 * 108, 18, 100, 50, 'GUIA', () => this.definirModo('guiado'), { variante: 'primario', tamanho: 19 });
     const g = p.g;
     g.strokeStyle = 'rgba(68,65,65,0.35)';
     g.lineWidth = 3;
@@ -548,8 +647,18 @@ export class App {
       if (sim && sim.nome && sim.ativo !== false) partes.push(`simulação: ${sim.nome}`);
       status = partes.filter(Boolean).join('  ·  ');
     }
-    p.texto(status, 34, yR + 24, { fonte: FONTE.forte(22), cor: COR.carvao, maxLargura: 780 });
+    p.texto(status, 34, yR + 24, { fonte: FONTE.forte(22), cor: COR.carvao, maxLargura: this.emVR ? 560 : 780 });
+    if (this.emVR) this.botaoSeguirPainel(p, yR - 2);
     p.alca('alca', p.W / 2 - 90, p.H - 20, 180, 12);
+  }
+
+  // Liga e desliga o painel que acompanha o olhar.
+  botaoSeguirPainel(p, y) {
+    p.botao('painel-seguir', p.W - 300, y - 4, 236, 42, this.painelFixo ? 'Painel: parado' : 'Painel: acompanha', () => {
+      this.painelFixo = !this.painelFixo;
+      this.tempoForaDaVista = 0;
+      this.painel.marcarSujo();
+    }, { variante: this.painelFixo ? 'secundario' : 'ativo', tamanho: 17 });
   }
 
   // ------------------------------------------------------------------
@@ -560,10 +669,13 @@ export class App {
     this.tempo += dt;
     const t = this.tempo;
     this.moverPC(dt);
+    this.posicionarSeNecessario();
     if (this.emVR) this.interacao.atualizarXR(this.posicaoCabeca());
     else this.interacao.atualizarMouse();
     this.atualizarBotaoPulso();
+    this.seguirPainel(dt);
     if (this.moduloAtivo && this.moduloAtivo.atualizar) this.moduloAtivo.atualizar(dt, t);
+    if (this.modo === 'guiado' && this.guia) this.guia.atualizar(dt, t);
     this.atualizarFontes(dt);
     if (this.motor.pronto) {
       this.camera.updateMatrixWorld();

@@ -6,7 +6,7 @@ import { TocadorMusica } from './tocador-musica.js';
 import { spriteTexto } from '../cena/efeitos.js';
 import { COR, FONTE } from '../ui/estilo-ui.js';
 
-const PASSOS = [
+export const PASSOS = [
   {
     titulo: 'Pronto para começar',
     texto: 'Fique em pé, olhando para a mesa com a maquete. Se a sala estiver torta, toque em Recentrar. O espelho fica atrás de você.',
@@ -29,7 +29,7 @@ const PASSOS = [
   },
   {
     titulo: '5. O Pirikito dá a volta',
-    texto: 'As asas passam pela esquerda, frente, direita e costas, como a tesoura do barbeiro virtual. Acompanhe pelo espelho. Com controles, eles vibram do lado do Pirikito.',
+    texto: 'As asas passam pela esquerda, frente, direita e costas, como a tesoura do barbeiro virtual. Acompanhe pelo espelho e pelo rastro de faíscas.',
   },
   {
     titulo: '6. A Aia cumprimenta',
@@ -211,19 +211,7 @@ export class ModuloSalaMaga {
       const dir = mundoAlvo.sub(atual);
       if (dir.lengthSq() > 1e-6) app.pirikito.rotation.set(0, Math.atan2(-dir.x, -dir.z) - app.mundo.rotation.y, 0);
     }
-    // Vibração nos controles do lado do Pirikito (só no laboratório).
-    this.tempoHaptica += dt;
-    if (this.tempoHaptica > 1 / 7 && app.interacao.temControles()) {
-      this.tempoHaptica = 0;
-      const mundoP = app.salaParaMundo(p.clone());
-      const local = mundoP.applyMatrix4(app.camera.matrixWorld.clone().invert());
-      const dist = local.length();
-      const forca = Math.max(0, Math.min(1, 1.4 - dist)) * 0.7;
-      if (forca > 0.05) {
-        if (Math.abs(local.x) < 0.15) app.interacao.pulsarLado('ambos', forca * 0.7, 30);
-        else app.interacao.pulsarLado(local.x < 0 ? 'left' : 'right', forca, 30);
-      }
-    }
+    // Nada vibra nas mãos (regra da equipe): a direção do voo aparece no espelho, nas setas e nas legendas.
   }
 
   criarFaiscas() {
